@@ -2,12 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import SunCalc from 'suncalc';
+import { addDays, startOfToday } from 'date-fns';
+import { getSunTimes } from 'astral';
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState(null);
   const [fogPrediction, setFogPrediction] = useState(0);
   const [location, setLocation] = useState({ lat: null, lon: null });
+  const [sunTimes, setSunTimes] = useState({ sunrise: null, sunset: null });
   const router = useRouter();
 
   useEffect(() => {
@@ -15,9 +17,10 @@ export default function Home() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setLocation({ lat: latitude, lon: longitude });
+          setLocation({ lat: latitude, lon:longitude });
           fetchWeatherData(latitude, longitude);
           calculateFogPrediction(latitude, longitude);
+          calculateSunTimes(latitude, longitude);
         },
         () => {
           router.push('/location');
@@ -49,6 +52,15 @@ export default function Home() {
     setFogPrediction(fogPrediction);
   };
 
+  const calculateSunTimes = (lat, lon) => {
+    const today = startOfToday();
+    const times = getSunTimes(lat, lon, today);
+    setSunTimes({
+      sunrise: times.sunrise,
+      sunset: times.sunset,
+    });
+  };
+
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
       <h1 className="text-4xl font-bold mb-8">PhotoSky</h1>
@@ -62,6 +74,11 @@ export default function Home() {
           <div className="mb-4">
             <h2>Fog Prediction Index</h2>
             <p>{fogPrediction.toFixed(2)}</p>
+          </div>
+          <div className="mb-4">
+            <h2>Sun Times</h2>
+            <p>일출: {sunTimes.sunrise?.toLocaleTimeString()}</p>
+            <p>일몰: {sunTimes.sunset?.toLocaleTimeString()}</p>
           </div>
           {/* Add more weather data here */}
         </>

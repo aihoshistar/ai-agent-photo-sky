@@ -1,5 +1,5 @@
 // filepath: app/layout.tsx
-import { Children, ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
