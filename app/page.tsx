@@ -21,6 +21,7 @@ import FeatureGuide from './components/FeatureGuide';
 import ExposureGuide from './components/ExposureGuide';
 import MoonPhase from './components/MoonPhase';
 import LensGuide from './components/LensGuide';
+import LocationMap from './components/LocationMap';
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<any>(null);
@@ -201,23 +202,26 @@ export default function Home() {
               humidity={weatherData.main?.humidity ?? 0}
             />
 
-            {/* 4. 채광 정보 섹션 (일출/일몰, 매직아워, 달의 위상) */}
-            {/* 모바일 1열, PC 3열로 배치하여 다시 추가 */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-              <SunTimes
-                sunTimes={{
-                  sunrise: sunTimes.sunrise?.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }),
-                  sunset: sunTimes.sunset?.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }),
-                }}
-              />
-              <MagicHours magicHours={magicHours} /> {/* ✨ 다시 추가됨! */}
+            {/* 4. 채광 및 위치 정보 섹션 (기존 3열 그리드에 추가하거나 별도 배치) */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+              {/* 일출/일몰 */}
+              <SunTimes sunTimes={{ 
+                sunrise: sunTimes.sunrise?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
+                sunset: sunTimes.sunset?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+              }} />
+              
+              {/* 매직아워 */}
+              <MagicHours magicHours={magicHours} />
+              
+              {/* 달의 위상 */}
               <MoonPhase date={new Date()} />
+              
+              {/* ✨ 새로 추가된 위치 지도 컴포넌트 */}
+              <LocationMap 
+                lat={weatherData.coord.lat} 
+                lon={weatherData.coord.lon} 
+                locationName={weatherData.name} 
+              />
             </div>
 
             {/* 5. 실전 가이드 섹션 */}
