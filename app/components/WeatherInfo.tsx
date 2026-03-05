@@ -22,21 +22,36 @@ export default function WeatherInfo({ weatherData, dataSource }: Props) {
     ? `https://openweathermap.org/img/wn/${weather.icon}@4x.png`
     : '';
 
+  const isKma = dataSource === 'KMA' || dataSource === 'KMA_FORECAST';
+  const badgeText =
+    dataSource === 'KMA'
+      ? '기상청 실황 (KMA)'
+      : dataSource === 'KMA_FORECAST'
+      ? '기상청 예보 (KMA)'
+      : 'OpenWeatherMap';
+
   return (
     <div className="relative overflow-hidden p-6 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-3xl shadow-xl border border-blue-500/30 text-white flex justify-between items-center">
       {/* ✨ 데이터 출처 뱃지 (우측 상단) */}
       {dataSource && (
         <div
-          className="absolute top-4 right-4 flex items-center px-2.5 py-1 text-[10px] font-semibold tracking-wide rounded-full border bg-slate-900/50 backdrop-blur-md z-10 
-          {dataSource === 'KMA' ? 'border-blue-500/30 text-blue-400' : 'border-orange-500/30 text-orange-400'}"
+          className={`absolute top-4 right-4 flex items-center px-2.5 py-1 text-[10px] font-semibold tracking-wide rounded-full border bg-slate-900/50 backdrop-blur-md z-10 
+          ${
+            isKma
+              ? 'border-blue-500/30 text-blue-400'
+              : 'border-orange-500/30 text-orange-400'
+          }`}
         >
-          <span className="mr-1.5 flex h-1.5 w-1.5 rounded-full {dataSource === 'KMA' ? 'bg-blue-500' : 'bg-orange-500'}"></span>
-          {dataSource === 'KMA' ? '기상청 실황 (KMA)' : 'OpenWeatherMap'}
+          <span
+            className={`mr-1.5 flex h-1.5 w-1.5 rounded-full ${
+              isKma ? 'bg-blue-500' : 'bg-orange-500'
+            }`}
+          ></span>
+          {badgeText}
         </div>
       )}
       {/* 배경 장식 (옵션) */}
       <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-
       <div className="z-10">
         <div className="flex items-center space-x-2 text-blue-100 mb-1">
           <MapPin size={18} />
@@ -59,7 +74,6 @@ export default function WeatherInfo({ weatherData, dataSource }: Props) {
           <span>최저: {tempMin}°</span>
         </div>
       </div>
-
       <div className="z-10 flex-shrink-0">
         {iconUrl && (
           <img

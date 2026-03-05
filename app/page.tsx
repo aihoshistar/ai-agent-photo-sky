@@ -4,7 +4,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { startOfToday } from 'date-fns';
 import { getSunTimes } from 'sunrise-sunset-js';
 import SunCalc from 'suncalc';
 
@@ -64,15 +63,6 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    if (weatherData) {
-      calculateFogPrediction();
-      if (weatherData.coord) {
-        calculateSunTimes(weatherData.coord.lat, weatherData.coord.lon);
-      }
-    }
-  }, [weatherData]);
-
   const fetchWeatherData = async (params: {
     lat?: number;
     lon?: number;
@@ -90,7 +80,6 @@ export default function Home() {
 
       const response = await axios.get(url);
 
-      // 👇 데이터 구조 변경에 맞게 상태 저장
       setWeatherData(response.data.current);
       setForecastData(response.data.forecast);
       setDataSource(response.data.dataSource);
@@ -107,9 +96,7 @@ export default function Home() {
   };
 
   const getActiveWeatherData = () => {
-    // 데이터가 아예 없으면 null 반환
     if (!weatherData) return null;
-    // 현재 시간이거나 예보 데이터가 없으면 현재 데이터 반환
     if (timeOffsetIndex === 0 || !forecastData || !forecastData.list)
       return weatherData;
 
@@ -124,24 +111,50 @@ export default function Home() {
 
   const activeWeather = getActiveWeatherData();
 
-  const calculateFogPrediction = () => {
-    if (!weatherData) return;
-    const humidity = weatherData.main.humidity || 0;
-    const temperatureDifference =
-      weatherData.main.temp_max - weatherData.main.temp_min || 0;
-    const windSpeed = weatherData.wind.speed || 0;
+  // ✅ (유지) 새로운 통합 useEffect: 탭이 바뀔 때마다 해/달/안개 지수를 모두 재계산합니다.
+  useEffect(() => {
+    if (activeWeather && activeWeather.coord) {
+      const targetDate = activeWeather.dt
+        ? new Date(activeWeather.dt * 1000)
+        : new Date();
+
+      calculateSunTimes(
+        activeWeather.coord.lat,
+        activeWeather.coord.lon,
+        targetDate,
+      );
+      calculateFogPrediction(activeWeather);
+    }
+  }, [weatherData, forecastData, timeOffsetIndex]);
+
+  // 안개 지수 계산 함수
+  const calculateFogPrediction = (currentWeather: any) => {
+    if (!currentWeather || !currentWeather.main || !currentWeather.wind) {
+      setFogPrediction(0);
+      return;
+    }
+
+    const humidity = currentWeather.main.humidity || 0;
+    // temp_max, temp_min이 없을 경우를 대비 (단기예보 병합 시 없을 수 있음)
+    const tempMax = currentWeather.main.temp_max || currentWeather.main.temp;
+    const tempMin = currentWeather.main.temp_min || currentWeather.main.temp;
+
+    const temperatureDifference = tempMax - tempMin;
+    const windSpeed = currentWeather.wind.speed || 0;
 
     const prediction =
-      (humidity * (temperatureDifference + 1) * (windSpeed + 1)) / 100;
-    setFogPrediction(prediction);
-  };
+      (humidity * (Math.abs(temperatureDifference) + 1) * (windSpeed + 1)) /
+      100;
 
-  const calculateSunTimes = (lat: number, lon: number) => {
-    const today = startOfToday();
-    const times = getSunTimes(lat, lon, today);
+    // NaN 방지 및 안전한 저장
+    setFogPrediction(isNaN(prediction) ? 0 : prediction);
+  };
+  // 일출/일몰 및 매직아워 계산 함수
+  const calculateSunTimes = (lat: number, lon: number, targetDate: Date) => {
+    const times = getSunTimes(lat, lon, targetDate);
     setSunTimes({ sunrise: times.sunrise, sunset: times.sunset });
 
-    const scTimes = SunCalc.getTimes(new Date(), lat, lon);
+    const scTimes = SunCalc.getTimes(targetDate, lat, lon);
     const formatTime = (date?: Date) => {
       if (!date || isNaN(date.getTime())) return '-';
       return date.toLocaleTimeString([], {
@@ -213,10 +226,10 @@ export default function Home() {
             <div className="flex items-center justify-start md:justify-center gap-2 mb-8 overflow-x-auto pb-4 snap-x hide-scrollbar w-full px-2">
               {[
                 { label: '현재 시간', offset: 0 },
-                { label: '+3시간', offset: 1 },    // list[0]
-                { label: '+6시간', offset: 2 },    // list[1]
-                { label: '+12시간', offset: 4 },   // list[3]
-                { label: '내일 이맘때', offset: 8 },  // list[7] (24시간 뒤)
+                { label: '+3시간', offset: 1 }, // list[0]
+                { label: '+6시간', offset: 2 }, // list[1]
+                { label: '+12시간', offset: 4 }, // list[3]
+                { label: '내일 이맘때', offset: 8 }, // list[7] (24시간 뒤)
                 { label: '모레 이맘때', offset: 16 }, // list[15] (48시간 뒤)
               ].map((option, index) => (
                 <button
@@ -243,20 +256,31 @@ export default function Home() {
                 <WeatherInfo
                   weatherData={activeWeather}
                   dataSource={
-                    timeOffsetIndex === 0 ? dataSource : 'OWM Forecast'
+                    timeOffsetIndex === 0
+                      ? dataSource
+                      : dataSource === 'KMA'
+                      ? 'KMA_FORECAST'
+                      : 'OWM_FORECAST'
                   }
                 />
               </article>
 
               {/* 2. 시간대별 상세 예보 */}
-              <section
-                className="md:col-span-2"
-                aria-label="시간대별 날씨 예보"
-              >
-                {forecastData && (
-                  <HourlyForecast forecastList={forecastData.list} />
-                )}
-              </section>
+              {forecastData && (
+                <section
+                  className="md:col-span-2"
+                  aria-label="시간대별 날씨 예보"
+                >
+                  {forecastData && weatherData && (
+                    <HourlyForecast
+                      // 👇 핵심: 배열의 맨 앞에 '현재 날씨(weatherData)'를 추가한 뒤 slice합니다!
+                      forecastList={[weatherData, ...forecastData.list].slice(
+                        timeOffsetIndex,
+                      )}
+                    />
+                  )}
+                </section>
+              )}
 
               {/* 3. 환경 수치 정보 (activeWeather 사용) */}
               <section
@@ -292,13 +316,22 @@ export default function Home() {
                     }}
                   />
                   <MagicHours magicHours={magicHours} />
-                  <MoonPhase date={new Date()} />
+
+                  {/* ✨ 달의 위상에도 activeWeather의 날짜를 전달합니다! */}
+                  <MoonPhase
+                    date={
+                      activeWeather?.dt
+                        ? new Date(activeWeather.dt * 1000)
+                        : new Date()
+                    }
+                  />
+
                   <LocationMap
                     lat={weatherData.coord.lat}
                     lon={weatherData.coord.lon}
                     locationName={weatherData.name}
                   />
-                </div>
+                </div>{' '}
               </section>
 
               {/* 5. Nikon Zf 실전 촬영 숙제 가이드 (activeWeather 전달) */}

@@ -61,3 +61,58 @@ export async function fetchKmaWeather(nx: number, ny: number) {
     return null;
   }
 }
+
+// 🕒 KST(한국 시간) 기준 기상청 단기예보 BaseTime 계산기
+function getKmaForecastBaseTime() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const kst = new Date(utc + 3600000 * 9);
+
+  // 기상청 단기예보는 02, 05, 08, 11, 14, 17, 20, 23시에 생성됨 (15분 여유 버퍼)
+  kst.setMinutes(kst.getMinutes() - 15);
+  let h = kst.getHours();
+
+  let baseTimeH = Math.floor((h + 1) / 3) * 3 - 1;
+  if (baseTimeH < 0) {
+    baseTimeH = 23;
+    kst.setDate(kst.getDate() - 1);
+  }
+
+  const yyyy = kst.getFullYear().toString();
+  const MM = (kst.getMonth() + 1).toString().padStart(2, '0');
+  const dd = kst.getDate().toString().padStart(2, '0');
+  const HH = baseTimeH.toString().padStart(2, '0');
+
+  return { baseDate: `${yyyy}${MM}${dd}`, baseTime: `${HH}00` };
+}
+
+// 📡 기상청 단기예보(미래 3일치) 호출 및 파싱 함수
+export async function fetchKmaForecast(nx: number, ny: number) {
+  const API_KEY = process.env.KMA_API_KEY;
+  const BASE_URL =
+    'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst';
+  const { baseDate, baseTime } = getKmaForecastBaseTime();
+
+  try {
+    // numOfRows=300 정도면 향후 24시간 이상의 데이터를 충분히 가져옵니다.
+    const requestUrl = `${BASE_URL}?serviceKey=${API_KEY}&pageNo=1&numOfRows=300&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`;
+
+    const response = await axios.get(requestUrl);
+    if (response.data.response?.header?.resultCode !== '00') return null;
+
+    const items = response.data.response.body.items.item;
+    const forecastMap = new Map();
+
+    // 시간별로(fcstDate + fcstTime) 데이터를 예쁘게 그룹핑합니다.
+    items.forEach((item: any) => {
+      const key = `${item.fcstDate}${item.fcstTime}`; // 예: '202310251500'
+      if (!forecastMap.has(key)) forecastMap.set(key, {});
+      forecastMap.get(key)[item.category] = item.fcstValue;
+    });
+
+    return forecastMap;
+  } catch (error) {
+    console.error('KMA Forecast Error:', error);
+    return null;
+  }
+}

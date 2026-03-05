@@ -22,7 +22,7 @@ export default function SearchBar({ onSearch }: Props) {
           type="text"
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          placeholder="출사 지역 검색 (예: 제주도, 부산, Seoul)"
+          placeholder="출사 지역 검색 (예: 부산, Seoul, 두바이, 캐나다)"
           className="w-full px-5 py-3 bg-gray-800 text-white rounded-full border border-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
         />
         <button
