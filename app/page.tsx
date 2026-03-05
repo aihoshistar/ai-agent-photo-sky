@@ -1,13 +1,15 @@
-"use client"; // 필수: 클라이언트 사이드 기능을 사용하기 위함
+"use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation'; // 수정: next/router가 아닌 next/navigation 사용
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { startOfToday } from 'date-fns';
 import { getSunTimes } from 'sunrise-sunset-js';
 import WeatherInfo from './components/WeatherInfo';
 import FogPrediction from './components/FogPrediction';
 import SunTimes from './components/SunTimes';
+// 👇 새로 만든 컴포넌트 임포트
+import CloudVisibility from './components/CloudVisibility'; 
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<any>(null);
@@ -17,7 +19,6 @@ export default function Home() {
   
   const router = useRouter();
 
-  // 1. 위치 정보 가져오기
   useEffect(() => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -36,7 +37,6 @@ export default function Home() {
     }
   }, [router]);
 
-  // 2. 날씨 데이터가 업데이트될 때마다 안개 예측 계산
   useEffect(() => {
     if (weatherData) {
       calculateFogPrediction();
@@ -45,6 +45,7 @@ export default function Home() {
 
   const fetchWeatherData = async (lat: number, lon: number) => {
     try {
+      // 프록시 삭제 후 설정한 API 라우트 경로로 호출
       const response = await axios.get(`/api/weather?lat=${lat}&lon=${lon}`);
       setWeatherData(response.data);
     } catch (error) {
@@ -54,7 +55,6 @@ export default function Home() {
 
   const calculateFogPrediction = () => {
     if (!weatherData) return;
-    // 습도, 온도차, 풍속을 이용한 간단한 안개 지수 계산
     const humidity = weatherData.main.humidity || 0;
     const temperatureDifference = (weatherData.main.temp_max - weatherData.main.temp_min) || 0;
     const windSpeed = weatherData.wind.speed || 0;
@@ -73,23 +73,37 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
-      <h1 className="text-4xl font-bold mb-8">PhotoSky</h1>
-      <p className="text-xl mb-12 text-center">정밀한 날씨 정보로 사진 촬영을 더욱 향상시키세요.</p>
+    <main className="flex flex-col items-center min-h-screen bg-gray-900 text-white p-6">
+      <div className="mt-12 mb-8 text-center">
+        <h1 className="text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+          PhotoSky
+        </h1>
+        <p className="text-gray-400">정밀한 날씨 정보로 사진 촬영을 더욱 향상시키세요.</p>
+      </div>
       
       {weatherData ? (
-        <div className="w-full max-w-2xl space-y-6">
+        <div className="w-full max-w-md space-y-4">
           <WeatherInfo weatherData={weatherData} />
+          
+          {/* 👇 여기에 구름양/가시거리 컴포넌트 추가 */}
+          <CloudVisibility 
+            cloudCover={weatherData.clouds?.all ?? 0} 
+            visibility={weatherData.visibility ?? 0} 
+          />
+
           <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
           <SunTimes 
             sunTimes={{ 
-              sunrise: sunTimes.sunrise?.toLocaleTimeString(), 
-              sunset: sunTimes.sunset?.toLocaleTimeString() 
+              sunrise: sunTimes.sunrise?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
+              sunset: sunTimes.sunset?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
             }} 
           />
         </div>
       ) : (
-        <p className="animate-pulse">위치 정보를 가져오는 중...</p>
+        <div className="flex flex-col items-center mt-20 space-y-4">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-400 animate-pulse">현재 위치의 기상 정보를 분석 중입니다...</p>
+        </div>
       )}
     </main>
   );
