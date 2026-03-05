@@ -15,20 +15,20 @@ export default function ExposureGuide({ weatherData }: Props) {
       return {
         shutter: '1/125초 이상',
         iso: '자동 (최대 12800)',
-        tip: '네온사인 촬영 시 스팟 측광으로 화이트홀을 방지하세요.'
+        tip: '네온사인 촬영 시 스팟 측광으로 화이트홀을 방지하세요.',
       };
     }
     if (condition === 'Clouds') {
       return {
         shutter: '1/250초',
         iso: '100-400',
-        tip: '부드러운 사광을 활용해 인물 아웃포커싱을 시도해보세요.'
+        tip: '부드러운 사광을 활용해 인물 아웃포커싱을 시도해보세요.',
       };
     }
     return {
       shutter: '1/1000초 이상',
       iso: '100 (최저)',
-      tip: '쨍한 순광입니다. 픽처 컨트롤을 [선명하게]로 설정하세요.'
+      tip: '쨍한 순광입니다. 픽처 컨트롤을 [선명하게]로 설정하세요.',
     };
   };
 
@@ -42,11 +42,15 @@ export default function ExposureGuide({ weatherData }: Props) {
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="p-3 bg-black/30 rounded-2xl border border-white/5">
-          <span className="text-[10px] text-gray-500 font-bold uppercase block mb-1">Target SS</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase block mb-1">
+            Target SS
+          </span>
           <span className="text-sm font-bold text-white">{rec.shutter}</span>
         </div>
         <div className="p-3 bg-black/30 rounded-2xl border border-white/5">
-          <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Rec. ISO</span>
+          <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">
+            Rec. ISO
+          </span>
           <span className="text-sm font-bold text-white">{rec.iso}</span>
         </div>
       </div>

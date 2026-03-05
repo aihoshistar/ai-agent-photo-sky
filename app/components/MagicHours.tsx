@@ -21,29 +21,41 @@ export default function MagicHours({ magicHours }: Props) {
       <h2 className="text-xl font-semibold mb-6 text-purple-300 flex items-center gap-2">
         <Sparkles size={20} className="text-purple-400" /> 매직 아워
       </h2>
-      
+
       <div className="flex flex-col justify-between flex-grow space-y-3">
         {/* 아침 시간대 */}
         <div className="space-y-2">
           <div className="flex justify-between items-center bg-blue-900/20 p-3 rounded-xl border border-blue-500/10">
             <span className="text-xs text-blue-300 font-medium">새벽 블루</span>
-            <span className="text-sm font-bold text-blue-100">{magicHours.morningBlue}</span>
+            <span className="text-sm font-bold text-blue-100">
+              {magicHours.morningBlue}
+            </span>
           </div>
           <div className="flex justify-between items-center bg-yellow-900/20 p-3 rounded-xl border border-yellow-500/10">
-            <span className="text-xs text-yellow-400 font-medium">아침 골든</span>
-            <span className="text-sm font-bold text-yellow-100">{magicHours.morningGolden}</span>
+            <span className="text-xs text-yellow-400 font-medium">
+              아침 골든
+            </span>
+            <span className="text-sm font-bold text-yellow-100">
+              {magicHours.morningGolden}
+            </span>
           </div>
         </div>
 
         {/* 저녁 시간대 */}
         <div className="space-y-2">
           <div className="flex justify-between items-center bg-yellow-900/20 p-3 rounded-xl border border-yellow-500/10">
-            <span className="text-xs text-yellow-400 font-medium">저녁 골든</span>
-            <span className="text-sm font-bold text-yellow-100">{magicHours.eveningGolden}</span>
+            <span className="text-xs text-yellow-400 font-medium">
+              저녁 골든
+            </span>
+            <span className="text-sm font-bold text-yellow-100">
+              {magicHours.eveningGolden}
+            </span>
           </div>
           <div className="flex justify-between items-center bg-blue-900/20 p-3 rounded-xl border border-blue-500/10">
             <span className="text-xs text-blue-300 font-medium">저녁 블루</span>
-            <span className="text-sm font-bold text-blue-100">{magicHours.eveningBlue}</span>
+            <span className="text-sm font-bold text-blue-100">
+              {magicHours.eveningBlue}
+            </span>
           </div>
         </div>
       </div>

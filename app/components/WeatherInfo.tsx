@@ -17,7 +17,9 @@ export default function WeatherInfo({ weatherData }: Props) {
   const temp = Math.round(weatherData?.main?.temp ?? 0);
   const tempMax = Math.round(weatherData?.main?.temp_max ?? 0);
   const tempMin = Math.round(weatherData?.main?.temp_min ?? 0);
-  const iconUrl = weather ? `https://openweathermap.org/img/wn/${weather.icon}@4x.png` : '';
+  const iconUrl = weather
+    ? `https://openweathermap.org/img/wn/${weather.icon}@4x.png`
+    : '';
 
   return (
     <div className="relative overflow-hidden p-6 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-3xl shadow-xl border border-blue-500/30 text-white flex justify-between items-center">
@@ -31,10 +33,14 @@ export default function WeatherInfo({ weatherData }: Props) {
             {weatherData.name}, {weatherData.sys.country}
           </h2>
         </div>
-        
+
         <div className="flex items-baseline space-x-3 mt-2">
-          <span className="text-6xl font-extrabold tracking-tighter">{temp}°</span>
-          <span className="text-xl font-medium text-blue-200">{weather?.description}</span>
+          <span className="text-6xl font-extrabold tracking-tighter">
+            {temp}°
+          </span>
+          <span className="text-xl font-medium text-blue-200">
+            {weather?.description}
+          </span>
         </div>
 
         <div className="mt-4 flex space-x-4 text-sm font-medium text-blue-100/80">
@@ -45,9 +51,9 @@ export default function WeatherInfo({ weatherData }: Props) {
 
       <div className="z-10 flex-shrink-0">
         {iconUrl && (
-          <img 
-            src={iconUrl} 
-            alt={weather?.description} 
+          <img
+            src={iconUrl}
+            alt={weather?.description}
             className="w-32 h-32 drop-shadow-2xl animate-pulse-slow"
           />
         )}

@@ -28,13 +28,11 @@ export default function FeatureGuide() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10 w-full">
       {features.map((f, i) => (
-        <div 
-          key={i} 
+        <div
+          key={i}
           className="flex flex-col items-center p-3 bg-slate-800/30 border border-slate-700/50 rounded-2xl backdrop-blur-sm"
         >
-          <div className="mb-2 p-2 bg-slate-900/50 rounded-full">
-            {f.icon}
-          </div>
+          <div className="mb-2 p-2 bg-slate-900/50 rounded-full">{f.icon}</div>
           <h4 className="text-xs font-bold text-slate-200 mb-1">{f.title}</h4>
           <p className="text-[10px] text-slate-400 text-center leading-tight break-keep">
             {f.desc}

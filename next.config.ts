@@ -4,7 +4,7 @@ import withPWA from '@ducanh2912/next-pwa';
 const withPWAInit = withPWA({
   dest: 'public',
   // 개발 환경에서는 PWA 동작을 비활성화하여 캐싱 문제를 방지
-  disable: process.env.NODE_ENV === 'development', 
+  disable: process.env.NODE_ENV === 'development',
 });
 
 const nextConfig: NextConfig = {
@@ -14,4 +14,4 @@ const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-export default withPWAInit(nextConfig);  
+export default withPWAInit(nextConfig);
