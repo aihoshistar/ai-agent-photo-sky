@@ -22,11 +22,14 @@ import ExposureGuide from './components/ExposureGuide';
 import MoonPhase from './components/MoonPhase';
 import LensGuide from './components/LensGuide';
 import LocationMap from './components/LocationMap';
+import Footer from './components/Footer';
 
 export default function Home() {
+  const [dataSource, setDataSource] = useState<string>('');
   const [weatherData, setWeatherData] = useState<any>(null);
   const [forecastData, setForecastData] = useState<any>(null);
   const [fogPrediction, setFogPrediction] = useState(0);
+  const [timeOffsetIndex, setTimeOffsetIndex] = useState<number>(0);
   const [sunTimes, setSunTimes] = useState<{
     sunrise: Date | null;
     sunset: Date | null;
@@ -90,6 +93,7 @@ export default function Home() {
       // 👇 데이터 구조 변경에 맞게 상태 저장
       setWeatherData(response.data.current);
       setForecastData(response.data.forecast);
+      setDataSource(response.data.dataSource);
     } catch (error) {
       console.error('Error fetching weather data:', error);
       setErrorMsg(
@@ -101,6 +105,24 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  const getActiveWeatherData = () => {
+    // 데이터가 아예 없으면 null 반환
+    if (!weatherData) return null;
+    // 현재 시간이거나 예보 데이터가 없으면 현재 데이터 반환
+    if (timeOffsetIndex === 0 || !forecastData || !forecastData.list)
+      return weatherData;
+
+    const targetForecast = forecastData.list[timeOffsetIndex - 1];
+    return {
+      ...targetForecast,
+      name: weatherData.name,
+      coord: weatherData.coord,
+      sys: weatherData.sys,
+    };
+  };
+
+  const activeWeather = getActiveWeatherData();
 
   const calculateFogPrediction = () => {
     if (!weatherData) return;
@@ -185,100 +207,133 @@ export default function Home() {
               하늘의 상태를 분석하고 있습니다...
             </p>
           </div>
-        ) : weatherData ? (
-          /* 👇 벤토 그리드 레이아웃 시작: 구조화된 아티클 및 섹션 적용 */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 fade-in pb-12">
-            {/* 1. 메인 실시간 기상 상태 (가장 중요한 정보) */}
-            <article
-              className="md:col-span-2"
-              aria-labelledby="current-weather-heading"
-            >
-              <WeatherInfo weatherData={weatherData} />
-            </article>
+        ) : activeWeather ? ( // 👈 weatherData 대신 activeWeather 확인
+          <div className="w-full">
+            {/* ✨ 출사 시간대 시뮬레이터 탭 추가 */}
+            <div className="flex items-center justify-start md:justify-center gap-2 mb-8 overflow-x-auto pb-4 snap-x hide-scrollbar w-full px-2">
+              {[
+                { label: '현재 시간', offset: 0 },
+                { label: '+3시간', offset: 1 },    // list[0]
+                { label: '+6시간', offset: 2 },    // list[1]
+                { label: '+12시간', offset: 4 },   // list[3]
+                { label: '내일 이맘때', offset: 8 },  // list[7] (24시간 뒤)
+                { label: '모레 이맘때', offset: 16 }, // list[15] (48시간 뒤)
+              ].map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => setTimeOffsetIndex(option.offset)}
+                  className={`snap-center flex-shrink-0 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 whitespace-nowrap ${
+                    timeOffsetIndex === option.offset
+                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30 md:scale-105'
+                      : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
 
-            {/* 2. 시간대별 상세 예보 (출사 계획 수립용) */}
-            <section className="md:col-span-2" aria-label="시간대별 날씨 예보">
-              {forecastData && (
-                <HourlyForecast forecastList={forecastData.list} />
-              )}
-            </section>
-
-            {/* 3. 환경 수치 정보 (구름, 가시거리 / 바람, 습도) */}
-            <section
-              className="grid grid-cols-1 md:grid-cols-2 md:col-span-2 gap-4"
-              aria-label="상세 기상 지표"
-            >
-              <CloudVisibility
-                cloudCover={weatherData.clouds?.all ?? 0}
-                visibility={weatherData.visibility ?? 0}
-              />
-              <WindHumidity
-                windSpeed={weatherData.wind?.speed ?? 0}
-                humidity={weatherData.main?.humidity ?? 0}
-              />
-            </section>
-
-            {/* 4. 채광 정보 및 촬영지 검증 (매직아워, 지도 등) */}
-            <section
-              className="md:col-span-2"
-              aria-label="일출·일몰 및 위치 정보"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-                <SunTimes
-                  sunTimes={{
-                    sunrise: sunTimes.sunrise?.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }),
-                    sunset: sunTimes.sunset?.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }),
-                  }}
+            {/* 👇 벤토 그리드 레이아웃 시작 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 fade-in pb-12">
+              {/* 1. 메인 실시간 기상 상태 (activeWeather 전달) */}
+              <article
+                className="md:col-span-2"
+                aria-labelledby="current-weather-heading"
+              >
+                <WeatherInfo
+                  weatherData={activeWeather}
+                  dataSource={
+                    timeOffsetIndex === 0 ? dataSource : 'OWM Forecast'
+                  }
                 />
-                <MagicHours magicHours={magicHours} />
-                <MoonPhase date={new Date()} />
-                <LocationMap
-                  lat={weatherData.coord.lat}
-                  lon={weatherData.coord.lon}
-                  locationName={weatherData.name}
-                />
-              </div>
-            </section>
-
-            {/* 5. Nikon Zf 실전 촬영 숙제 가이드 (핵심 서비스 섹션) */}
-            <section
-              className="md:col-span-2 space-y-4"
-              aria-labelledby="photography-guide-heading"
-            >
-              <header className="sr-only">
-                <h2 id="photography-guide-heading">
-                  Nikon Zf 실전 촬영 가이드
-                </h2>
-              </header>
-
-              {/* A. 메인 미션: 빛의 방향 및 측광 팁 [cite: 19, 34, 48] */}
-              <article className="w-full">
-                <PhotographyMission weatherData={weatherData} />
               </article>
 
-              {/* B. 노출 및 렌즈 테크니컬 가이드 [cite: 72, 83] */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-                <ExposureGuide weatherData={weatherData} />
-                <LensGuide />
-              </div>
-            </section>
+              {/* 2. 시간대별 상세 예보 */}
+              <section
+                className="md:col-span-2"
+                aria-label="시간대별 날씨 예보"
+              >
+                {forecastData && (
+                  <HourlyForecast forecastList={forecastData.list} />
+                )}
+              </section>
 
-            {/* 6. 특수 기상 지수 (안개 예측) */}
-            <article
-              className="md:col-span-2"
-              aria-label="안개 발생 가능성 분석"
-            >
-              <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
-            </article>
+              {/* 3. 환경 수치 정보 (activeWeather 사용) */}
+              <section
+                className="grid grid-cols-1 md:grid-cols-2 md:col-span-2 gap-4"
+                aria-label="상세 기상 지표"
+              >
+                <CloudVisibility
+                  cloudCover={activeWeather.clouds?.all ?? 0}
+                  visibility={activeWeather.visibility ?? 0}
+                />
+                <WindHumidity
+                  windSpeed={activeWeather.wind?.speed ?? 0}
+                  humidity={activeWeather.main?.humidity ?? 0}
+                />
+              </section>
+
+              {/* 4. 채광 정보 및 촬영지 검증 (좌표는 변하지 않으므로 기존 weatherData 유지) */}
+              <section
+                className="md:col-span-2"
+                aria-label="일출·일몰 및 위치 정보"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+                  <SunTimes
+                    sunTimes={{
+                      sunrise: sunTimes.sunrise?.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }),
+                      sunset: sunTimes.sunset?.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }),
+                    }}
+                  />
+                  <MagicHours magicHours={magicHours} />
+                  <MoonPhase date={new Date()} />
+                  <LocationMap
+                    lat={weatherData.coord.lat}
+                    lon={weatherData.coord.lon}
+                    locationName={weatherData.name}
+                  />
+                </div>
+              </section>
+
+              {/* 5. Nikon Zf 실전 촬영 숙제 가이드 (activeWeather 전달) */}
+              <section
+                className="md:col-span-2 space-y-4"
+                aria-labelledby="photography-guide-heading"
+              >
+                <header className="sr-only">
+                  <h2 id="photography-guide-heading">
+                    Nikon Zf 실전 촬영 가이드
+                  </h2>
+                </header>
+
+                <article className="w-full">
+                  <PhotographyMission weatherData={activeWeather} />
+                </article>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                  <ExposureGuide weatherData={activeWeather} />
+                  <LensGuide />
+                </div>
+              </section>
+
+              {/* 6. 특수 기상 지수 (안개 예측) */}
+              <article
+                className="md:col-span-2"
+                aria-label="안개 발생 가능성 분석"
+              >
+                <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
+              </article>
+            </div>
           </div>
         ) : null}
       </div>
+      <Footer />
     </main>
   );
 }

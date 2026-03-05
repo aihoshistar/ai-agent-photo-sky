@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://ai-agent-photo-sky.vercel.app'),
   title: {
     default: 'PhotoSky - 사진작가를 위한 정밀 기상 및 채광 정보',
     template: '%s | PhotoSky',
