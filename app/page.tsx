@@ -147,105 +147,137 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center min-h-screen bg-[#0f172a] text-slate-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
       {/* 헤더 타이틀 */}
-      <div className="mt-8 mb-6 text-center">
+      <header className="mt-8 mb-6 text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-teal-400">
           PhotoSky
         </h1>
         <p className="text-slate-400 text-sm md:text-base font-medium mb-8">
           사진작가를 위한 정밀 기상 및 채광 정보
         </p>
-        <div className="w-full max-w-4xl">
+        <section aria-label="주요 기능 소개" className="w-full max-w-4xl">
           <FeatureGuide />
-        </div>
-      </div>
+        </section>
+      </header>
 
       {/* 전체 컨테이너 넓이 확대 (max-w-md -> max-w-4xl) */}
       <div className="w-full max-w-4xl">
-        <SearchBar onSearch={(city) => fetchWeatherData({ city })} />
+        {/* 검색 영역: 사용자의 인터랙션이 시작되는 독립적 섹션 */}
+        <section aria-label="지역 검색" className="mb-8">
+          <SearchBar onSearch={(city) => fetchWeatherData({ city })} />
+        </section>
 
         {errorMsg && (
-          <div className="p-4 mb-6 text-sm text-red-300 bg-red-950/40 border border-red-900/50 rounded-xl text-center backdrop-blur-sm">
+          <div
+            role="alert"
+            className="p-4 mb-6 text-sm text-red-300 bg-red-950/40 border border-red-900/50 rounded-xl text-center backdrop-blur-sm"
+          >
             {errorMsg}
           </div>
         )}
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center mt-32 space-y-6">
+          <div
+            className="flex flex-col items-center justify-center mt-32 space-y-6"
+            aria-live="polite"
+          >
             <div className="w-14 h-14 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
             <p className="text-slate-400 animate-pulse font-medium">
               하늘의 상태를 분석하고 있습니다...
             </p>
           </div>
         ) : weatherData ? (
-          /* 👇 벤토 그리드 레이아웃 시작 */
+          /* 👇 벤토 그리드 레이아웃 시작: 구조화된 아티클 및 섹션 적용 */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 fade-in pb-12">
-            {/* 1. 메인 날씨 카드 */}
-            <div className="md:col-span-2">
+            {/* 1. 메인 실시간 기상 상태 (가장 중요한 정보) */}
+            <article
+              className="md:col-span-2"
+              aria-labelledby="current-weather-heading"
+            >
               <WeatherInfo weatherData={weatherData} />
-            </div>
+            </article>
 
-            {/* 2. 시간대별 예보 */}
-            <div className="md:col-span-2">
+            {/* 2. 시간대별 상세 예보 (출사 계획 수립용) */}
+            <section className="md:col-span-2" aria-label="시간대별 날씨 예보">
               {forecastData && (
                 <HourlyForecast forecastList={forecastData.list} />
               )}
-            </div>
+            </section>
 
-            {/* 3. 환경 정보 (구름, 가시거리 / 바람, 습도) */}
-            <CloudVisibility
-              cloudCover={weatherData.clouds?.all ?? 0}
-              visibility={weatherData.visibility ?? 0}
-            />
-
-            <WindHumidity
-              windSpeed={weatherData.wind?.speed ?? 0}
-              humidity={weatherData.main?.humidity ?? 0}
-            />
-
-            {/* 4. 채광 및 위치 정보 섹션 (기존 3열 그리드에 추가하거나 별도 배치) */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-              {/* 일출/일몰 */}
-              <SunTimes sunTimes={{ 
-                sunrise: sunTimes.sunrise?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
-                sunset: sunTimes.sunset?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-              }} />
-              
-              {/* 매직아워 */}
-              <MagicHours magicHours={magicHours} />
-              
-              {/* 달의 위상 */}
-              <MoonPhase date={new Date()} />
-              
-              {/* ✨ 새로 추가된 위치 지도 컴포넌트 */}
-              <LocationMap 
-                lat={weatherData.coord.lat} 
-                lon={weatherData.coord.lon} 
-                locationName={weatherData.name} 
+            {/* 3. 환경 수치 정보 (구름, 가시거리 / 바람, 습도) */}
+            <section
+              className="grid grid-cols-1 md:grid-cols-2 md:col-span-2 gap-4"
+              aria-label="상세 기상 지표"
+            >
+              <CloudVisibility
+                cloudCover={weatherData.clouds?.all ?? 0}
+                visibility={weatherData.visibility ?? 0}
               />
-            </div>
+              <WindHumidity
+                windSpeed={weatherData.wind?.speed ?? 0}
+                humidity={weatherData.main?.humidity ?? 0}
+              />
+            </section>
 
-            {/* 5. 실전 가이드 섹션 */}
-            <div className="md:col-span-2 space-y-4">
-              {/* A. 메인 미션 가이드: 텍스트가 많으므로 한 줄을 다 사용 (Full Width) */}
-              <div className="w-full">
-                <PhotographyMission weatherData={weatherData} />
+            {/* 4. 채광 정보 및 촬영지 검증 (매직아워, 지도 등) */}
+            <section
+              className="md:col-span-2"
+              aria-label="일출·일몰 및 위치 정보"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+                <SunTimes
+                  sunTimes={{
+                    sunrise: sunTimes.sunrise?.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }),
+                    sunset: sunTimes.sunset?.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }),
+                  }}
+                />
+                <MagicHours magicHours={magicHours} />
+                <MoonPhase date={new Date()} />
+                <LocationMap
+                  lat={weatherData.coord.lat}
+                  lon={weatherData.coord.lon}
+                  locationName={weatherData.name}
+                />
               </div>
+            </section>
 
-              {/* B. 노출 & 렌즈 가이드: 수치와 짧은 팁 위주이므로 2단 배치 */}
+            {/* 5. Nikon Zf 실전 촬영 숙제 가이드 (핵심 서비스 섹션) */}
+            <section
+              className="md:col-span-2 space-y-4"
+              aria-labelledby="photography-guide-heading"
+            >
+              <header className="sr-only">
+                <h2 id="photography-guide-heading">
+                  Nikon Zf 실전 촬영 가이드
+                </h2>
+              </header>
+
+              {/* A. 메인 미션: 빛의 방향 및 측광 팁 [cite: 19, 34, 48] */}
+              <article className="w-full">
+                <PhotographyMission weatherData={weatherData} />
+              </article>
+
+              {/* B. 노출 및 렌즈 테크니컬 가이드 [cite: 72, 83] */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
                 <ExposureGuide weatherData={weatherData} />
                 <LensGuide />
               </div>
-            </div>
+            </section>
 
-            {/* 6. 안개 지수 */}
-            <div className="md:col-span-2">
+            {/* 6. 특수 기상 지수 (안개 예측) */}
+            <article
+              className="md:col-span-2"
+              aria-label="안개 발생 가능성 분석"
+            >
               <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
-            </div>
+            </article>
           </div>
-        ) : /* 👆 벤토 그리드 레이아웃 끝 */
-
-        null}
+        ) : null}
       </div>
     </main>
   );

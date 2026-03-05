@@ -1,18 +1,20 @@
 {
   "name": "PhotoSky",
   "short_name": "PhotoSky",
+  "description": "사진작가를 위한 정밀 기상 및 채광 정보",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a202c",
-  "theme_color": "#ffffff",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable" 
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
