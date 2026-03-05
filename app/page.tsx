@@ -14,11 +14,13 @@ import SunTimes from './components/SunTimes';
 import CloudVisibility from './components/CloudVisibility';
 import SearchBar from './components/SearchBar';
 import MagicHours from './components/MagicHours';
-import HourlyForecast from './components/HourlyForecast'; // 👇 예보 컴포넌트 추가
+import HourlyForecast from './components/HourlyForecast';
+import WindHumidity from './components/WindHumidity';
+import PhotographyMission from './components/PhotographyMission';
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<any>(null);
-  const [forecastData, setForecastData] = useState<any>(null); // 👇 예보 상태 추가
+  const [forecastData, setForecastData] = useState<any>(null);
   const [fogPrediction, setFogPrediction] = useState(0);
   const [sunTimes, setSunTimes] = useState<{ sunrise: Date | null; sunset: Date | null }>({ sunrise: null, sunset: null });
   const [magicHours, setMagicHours] = useState<any>(null); 
@@ -109,53 +111,81 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-900 text-white p-6">
-      <div className="mt-12 mb-8 text-center">
-        <h1 className="text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+    <main className="flex flex-col items-center min-h-screen bg-[#0f172a] text-slate-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
+      
+      {/* 헤더 타이틀 */}
+      <div className="mt-8 mb-10 text-center">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-teal-400">
           PhotoSky
         </h1>
-        <p className="text-gray-400">정밀한 날씨 정보로 사진 촬영을 더욱 향상시키세요.</p>
+        <p className="text-slate-400 text-sm md:text-base font-medium">사진작가를 위한 정밀 기상 및 채광 정보</p>
       </div>
       
-      <div className="w-full max-w-md">
+      {/* 전체 컨테이너 넓이 확대 (max-w-md -> max-w-4xl) */}
+      <div className="w-full max-w-4xl">
         <SearchBar onSearch={(city) => fetchWeatherData({ city })} />
 
         {errorMsg && (
-          <div className="p-4 mb-4 text-sm text-red-400 bg-red-900/20 rounded-lg text-center">
+          <div className="p-4 mb-6 text-sm text-red-300 bg-red-950/40 border border-red-900/50 rounded-xl text-center backdrop-blur-sm">
             {errorMsg}
           </div>
         )}
         
         {loading ? (
-          <div className="flex flex-col items-center mt-20 space-y-4">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-400 animate-pulse">기상 정보를 분석 중입니다...</p>
+          <div className="flex flex-col items-center justify-center mt-32 space-y-6">
+            <div className="w-14 h-14 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+            <p className="text-slate-400 animate-pulse font-medium">하늘의 상태를 분석하고 있습니다...</p>
           </div>
         ) : weatherData ? (
-          <div className="space-y-4 fade-in pb-10">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold tracking-wider">{weatherData.name}</h2>
-              <p className="text-gray-400">{weatherData.sys?.country}</p>
+          
+          /* 👇 벤토 그리드 레이아웃 시작 */
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 fade-in pb-12">
+            
+            {/* 1. 메인 날씨 카드 (모바일, PC 모두 2칸 차지하여 가장 크게 표시) */}
+            <div className="md:col-span-2">
+              <WeatherInfo weatherData={weatherData} />
             </div>
 
-            <WeatherInfo weatherData={weatherData} />
+            {/* 2. 시간대별 예보 (모바일, PC 모두 2칸 차지) */}
+            <div className="md:col-span-2">
+              {forecastData && <HourlyForecast forecastList={forecastData.list} />}
+            </div>
+
+            {/* 3. 그리드 좌측/우측 분할 컴포넌트들 */}
             <CloudVisibility 
               cloudCover={weatherData.clouds?.all ?? 0} 
               visibility={weatherData.visibility ?? 0} 
             />
             
-            {/* 👇 시간대별 예보 UI 출력 */}
-            {forecastData && <HourlyForecast forecastList={forecastData.list} />}
-
-            <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
-            <SunTimes 
-              sunTimes={{ 
-                sunrise: sunTimes.sunrise?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
-                sunset: sunTimes.sunset?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-              }} 
+            <WindHumidity 
+              windSpeed={weatherData.wind?.speed ?? 0} 
+              humidity={weatherData.main?.humidity ?? 0} 
             />
-            <MagicHours magicHours={magicHours} />
+
+            {/* 4. 일출/일몰 및 매직아워 */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <SunTimes 
+                sunTimes={{ 
+                  sunrise: sunTimes.sunrise?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
+                  sunset: sunTimes.sunset?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                }} 
+              />
+              <MagicHours magicHours={magicHours} />
+            </div>
+
+            {/* 👇 5. 이번 주 실전 촬영 가이드 (새로 추가!) */}
+            <div className="md:col-span-2">
+              <PhotographyMission sunset={sunTimes.sunset} />
+            </div>
+
+            {/* 6. 안개 지수 (전체 너비) */}
+            <div className="md:col-span-2">
+              <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
+            </div>
+            
           </div>
+          /* 👆 벤토 그리드 레이아웃 끝 */
+          
         ) : null}
       </div>
     </main>

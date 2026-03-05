@@ -1,23 +1,21 @@
+// app/layout.tsx
 import { ReactNode } from 'react';
-import type { Metadata, Viewport } from 'next';
-// import './globals.css'; (글로벌 CSS 임포트 확인 필요)
+import './globals.css'; // ✨ 이 줄을 반드시 추가해 주세요!
 
-// 1. Metadata API 사용
-export const metadata: Metadata = {
+export const metadata = {
   title: 'PhotoSky',
   description: "Photographer's weather service",
   manifest: '/manifest.json',
 };
 
-export const viewport: Viewport = {
-  themeColor: '#ffffff',
+export const viewport = {
+  themeColor: '#0f172a',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
-      {/* flex 및 정렬 클래스 제거 */}
-      <body className="bg-gray-900 text-white antialiased">
+      <body className="bg-[#0f172a] text-slate-200 antialiased min-h-screen">
         {children}
       </body>
     </html>
