@@ -18,6 +18,9 @@ import HourlyForecast from './components/HourlyForecast';
 import WindHumidity from './components/WindHumidity';
 import PhotographyMission from './components/PhotographyMission';
 import FeatureGuide from './components/FeatureGuide';
+import ExposureGuide from './components/ExposureGuide';
+import MoonPhase from './components/MoonPhase';
+import LensGuide from './components/LensGuide';
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<any>(null);
@@ -147,17 +150,17 @@ export default function Home() {
           /* 👇 벤토 그리드 레이아웃 시작 */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 fade-in pb-12">
             
-            {/* 1. 메인 날씨 카드 (모바일, PC 모두 2칸 차지하여 가장 크게 표시) */}
+            {/* 1. 메인 날씨 카드 */}
             <div className="md:col-span-2">
               <WeatherInfo weatherData={weatherData} />
             </div>
 
-            {/* 2. 시간대별 예보 (모바일, PC 모두 2칸 차지) */}
+            {/* 2. 시간대별 예보 */}
             <div className="md:col-span-2">
               {forecastData && <HourlyForecast forecastList={forecastData.list} />}
             </div>
 
-            {/* 3. 그리드 좌측/우측 분할 컴포넌트들 */}
+            {/* 3. 환경 정보 (구름, 가시거리 / 바람, 습도) */}
             <CloudVisibility 
               cloudCover={weatherData.clouds?.all ?? 0} 
               visibility={weatherData.visibility ?? 0} 
@@ -168,27 +171,40 @@ export default function Home() {
               humidity={weatherData.main?.humidity ?? 0} 
             />
 
-            {/* 4. 일출/일몰 및 매직아워 */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+            {/* 4. 채광 정보 섹션 (일출/일몰, 매직아워, 달의 위상) */}
+            {/* 모바일 1열, PC 3열로 배치하여 다시 추가 */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
               <SunTimes 
                 sunTimes={{ 
                   sunrise: sunTimes.sunrise?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
                   sunset: sunTimes.sunset?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
                 }} 
               />
-              <MagicHours magicHours={magicHours} />
+              <MagicHours magicHours={magicHours} /> {/* ✨ 다시 추가됨! */}
+              <MoonPhase date={new Date()} />
             </div>
 
-            {/* 👇 5. 이번 주 실전 촬영 가이드 (새로 추가!) */}
-            <div className="md:col-span-2">
-              <PhotographyMission weatherData={weatherData} />
+            {/* 5. 실전 가이드 섹션 */}
+            <div className="md:col-span-2 space-y-4">
+              
+              {/* A. 메인 미션 가이드: 텍스트가 많으므로 한 줄을 다 사용 (Full Width) */}
+              <div className="w-full">
+                <PhotographyMission weatherData={weatherData} />
+              </div>
+
+              {/* B. 노출 & 렌즈 가이드: 수치와 짧은 팁 위주이므로 2단 배치 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                <ExposureGuide weatherData={weatherData} />
+                <LensGuide />
+              </div>
+
             </div>
 
-            {/* 6. 안개 지수 (전체 너비) */}
+            {/* 6. 안개 지수 */}
             <div className="md:col-span-2">
               <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
             </div>
-            
+
           </div>
           /* 👆 벤토 그리드 레이아웃 끝 */
           
