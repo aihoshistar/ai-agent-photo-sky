@@ -17,6 +17,7 @@ import MagicHours from './components/MagicHours';
 import HourlyForecast from './components/HourlyForecast';
 import WindHumidity from './components/WindHumidity';
 import PhotographyMission from './components/PhotographyMission';
+import FeatureGuide from './components/FeatureGuide';
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<any>(null);
@@ -114,11 +115,16 @@ export default function Home() {
     <main className="flex flex-col items-center min-h-screen bg-[#0f172a] text-slate-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
       
       {/* 헤더 타이틀 */}
-      <div className="mt-8 mb-10 text-center">
+      <div className="mt-8 mb-6 text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-teal-400">
           PhotoSky
         </h1>
-        <p className="text-slate-400 text-sm md:text-base font-medium">사진작가를 위한 정밀 기상 및 채광 정보</p>
+        <p className="text-slate-400 text-sm md:text-base font-medium mb-8">
+          사진작가를 위한 정밀 기상 및 채광 정보
+        </p>
+        <div className="w-full max-w-4xl">
+          <FeatureGuide />
+        </div>
       </div>
       
       {/* 전체 컨테이너 넓이 확대 (max-w-md -> max-w-4xl) */}
@@ -163,7 +169,7 @@ export default function Home() {
             />
 
             {/* 4. 일출/일몰 및 매직아워 */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
               <SunTimes 
                 sunTimes={{ 
                   sunrise: sunTimes.sunrise?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
@@ -175,7 +181,7 @@ export default function Home() {
 
             {/* 👇 5. 이번 주 실전 촬영 가이드 (새로 추가!) */}
             <div className="md:col-span-2">
-              <PhotographyMission sunset={sunTimes.sunset} />
+              <PhotographyMission weatherData={weatherData} />
             </div>
 
             {/* 6. 안개 지수 (전체 너비) */}
