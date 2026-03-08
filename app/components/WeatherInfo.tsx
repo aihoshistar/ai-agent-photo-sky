@@ -27,16 +27,15 @@ export default function WeatherInfo({ weatherData, dataSource }: Props) {
     dataSource === 'KMA'
       ? '기상청 실황 (KMA)'
       : dataSource === 'KMA_FORECAST'
-      ? '기상청 예보 (KMA)'
-      : 'OpenWeatherMap';
+        ? '기상청 예보 (KMA)'
+        : 'OpenWeatherMap';
 
   return (
-    <div className="relative overflow-hidden p-6 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-3xl shadow-xl border border-blue-500/30 text-white flex justify-between items-center">
+    <div className="relative flex items-center justify-between overflow-hidden rounded-3xl border border-blue-500/30 bg-gradient-to-br from-blue-600 to-indigo-800 p-6 text-white shadow-xl">
       {/* ✨ 데이터 출처 뱃지 (우측 상단) */}
       {dataSource && (
         <div
-          className={`absolute top-4 right-4 flex items-center px-2.5 py-1 text-[10px] font-semibold tracking-wide rounded-full border bg-slate-900/50 backdrop-blur-md z-10 
-          ${
+          className={`absolute right-4 top-4 z-10 flex items-center rounded-full border bg-slate-900/50 px-2.5 py-1 text-[10px] font-semibold tracking-wide backdrop-blur-md ${
             isKma
               ? 'border-blue-500/30 text-blue-400'
               : 'border-orange-500/30 text-orange-400'
@@ -51,16 +50,16 @@ export default function WeatherInfo({ weatherData, dataSource }: Props) {
         </div>
       )}
       {/* 배경 장식 (옵션) */}
-      <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
       <div className="z-10">
-        <div className="flex items-center space-x-2 text-blue-100 mb-1">
+        <div className="mb-1 flex items-center space-x-2 text-blue-100">
           <MapPin size={18} />
           <h2 className="text-xl font-medium tracking-wide">
             {weatherData.name}, {weatherData.sys.country}
           </h2>
         </div>
 
-        <div className="flex items-baseline space-x-3 mt-2">
+        <div className="mt-2 flex items-baseline space-x-3">
           <span className="text-6xl font-extrabold tracking-tighter">
             {temp}°
           </span>
@@ -79,7 +78,7 @@ export default function WeatherInfo({ weatherData, dataSource }: Props) {
           <img
             src={iconUrl}
             alt={weather?.description}
-            className="w-32 h-32 drop-shadow-2xl animate-pulse-slow"
+            className="animate-pulse-slow h-32 w-32 drop-shadow-2xl"
           />
         )}
       </div>

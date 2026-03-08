@@ -12,12 +12,12 @@ export default function LocationMap({ lat, lon, locationName }: Props) {
   const mapUrl = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
 
   return (
-    <div className="p-6 bg-gray-800 rounded-3xl shadow-lg border border-gray-700 flex flex-col h-full">
-      <h2 className="text-xl font-semibold mb-4 text-emerald-400 flex items-center gap-2">
+    <div className="flex h-full flex-col rounded-3xl border border-gray-700 bg-gray-800 p-6 shadow-lg">
+      <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-emerald-400">
         <MapPin size={20} /> 위치 확인
       </h2>
 
-      <div className="relative w-full flex-grow min-h-[200px] rounded-2xl overflow-hidden border border-gray-700">
+      <div className="relative min-h-[200px] w-full flex-grow overflow-hidden rounded-2xl border border-gray-700">
         <iframe
           title="Location Map"
           width="100%"
@@ -31,7 +31,7 @@ export default function LocationMap({ lat, lon, locationName }: Props) {
         ></iframe>
       </div>
 
-      <div className="mt-4 flex justify-between items-center text-[11px] text-gray-500">
+      <div className="mt-4 flex items-center justify-between text-[11px] text-gray-500">
         <span>
           좌표: {lat.toFixed(4)}, {lon.toFixed(4)}
         </span>

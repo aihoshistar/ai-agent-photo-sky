@@ -22,31 +22,31 @@ export default function WindHumidity({ windSpeed, humidity }: Props) {
   };
 
   return (
-    <div className="mb-4 p-5 bg-gray-800 rounded-xl shadow-lg border border-gray-700">
-      <h2 className="text-xl font-semibold mb-4 text-indigo-300">
+    <div className="mb-4 rounded-xl border border-gray-700 bg-gray-800 p-5 shadow-lg">
+      <h2 className="mb-4 text-xl font-semibold text-indigo-300">
         바람 및 습도
       </h2>
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         {/* 풍속 정보 */}
-        <div className="flex flex-col items-center w-1/2 border-r border-gray-600 px-2">
-          <span className="text-gray-400 text-sm mb-1">풍속</span>
+        <div className="flex w-1/2 flex-col items-center border-r border-gray-600 px-2">
+          <span className="mb-1 text-sm text-gray-400">풍속</span>
           <span className="text-2xl font-bold">
             {windSpeed.toFixed(1)}
-            <span className="text-lg font-normal text-gray-300 ml-1">m/s</span>
+            <span className="ml-1 text-lg font-normal text-gray-300">m/s</span>
           </span>
-          <span className="text-xs text-gray-500 mt-1 text-center break-keep">
+          <span className="mt-1 break-keep text-center text-xs text-gray-500">
             {getWindAdvice(windSpeed)}
           </span>
         </div>
 
         {/* 습도 정보 */}
-        <div className="flex flex-col items-center w-1/2 px-2">
-          <span className="text-gray-400 text-sm mb-1">습도</span>
+        <div className="flex w-1/2 flex-col items-center px-2">
+          <span className="mb-1 text-sm text-gray-400">습도</span>
           <span className="text-2xl font-bold">
             {humidity}
-            <span className="text-lg font-normal text-gray-300 ml-1">%</span>
+            <span className="ml-1 text-lg font-normal text-gray-300">%</span>
           </span>
-          <span className="text-xs text-gray-500 mt-1 text-center break-keep">
+          <span className="mt-1 break-keep text-center text-xs text-gray-500">
             {getHumidityAdvice(humidity)}
           </span>
         </div>

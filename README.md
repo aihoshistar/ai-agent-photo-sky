@@ -1,92 +1,94 @@
-# 📸 PhotoSky: Photographer's Smart Weather Agent
+# 🌌 Atmos (애트모스) 
+### 사진작가를 위한 정밀 기상 및 채광 컴퓨테이셔널 대시보드
+> "완벽한 셔터 찬스는 기다리는 것이 아니라, 계산하는 것입니다."
 
-> **Live Demo: [https://ai-agent-photo-sky.vercel.app](https://ai-agent-photo-sky.vercel.app/)**
-
-**PhotoSky**는 사진작가의 시선에서 날씨를 해석합니다. 단순히 '맑음'을 알리는 것이 아니라, 그 맑은 날씨에 어떤 **빛의 방향**을 선택하고 **Nikon Zf**를 어떻게 세팅해야 하는지 실시간으로 가이드합니다.
-
----
-
-## ✨ 핵심 기능 (Core Features)
-
-### 1. 🎯 실시간 실전 촬영 가이드
-
-- **날씨 맞춤형 미션**: 현재 기상 상태(맑음, 흐림, 비/안개)를 분석하여 이번 주 숙제 가이드에 최적화된 촬영 미션을 제안합니다.
-- **Zf + 24-70mm f/4 S 최적화**: 렌즈의 최단 촬영 거리(30cm) 활용법과 침동식 구조 주의사항, 아웃포커싱 공식을 상시 제공합니다.
-
-### 2. 🌤️ 정밀 기상 및 채광 분석
-
-- **매직 아워 타임라인**: 골든 아워와 블루 아워를 분 단위로 계산하여 황금 같은 촬영 타이밍을 놓치지 않게 합니다.
-- **안개 예측 지수 (Fog Index)**: 습도, 온도차, 풍속을 결합하여 몽환적인 안개 사진을 찍을 수 있는 확률을 분석합니다.
-- **달의 위상 (Moon Phase)**: 월광 지수를 통해 야간 촬영 시 암부(Black Hole) 표현의 깊이를 예측합니다.
-
-### 3. ⚙️ 지능형 노출 가이드 (Exposure Helper)
-
-- **실시간 세팅 추천**: 현재 조도와 날씨를 바탕으로 Zf의 추천 ISO, 셔터 스피드, 픽처 컨트롤(선명하게, 딥톤 모노크롬 등)을 제안합니다.
+Atmos는 단순한 날씨 앱을 넘어, 사진작가가 현장에서 직면하는 기상과 광학적 변수를 데이터로 시각화하여 최적의 촬영 전술을 설계할 수 있도록 돕는 전문 도구입니다.
 
 ---
 
-## 🤖 AI 에이전트 협업 시스템 (Development Context)
+## ✨ 핵심 기능 (Key Features)
 
-이 프로젝트는 파이썬 기반의 **AI 에이전트 팀**에 의해 초기에 설계 및 구현되었습니다. 각 에이전트는 고유한 페르소나를 가지고 프로젝트를 발전시켰습니다.
+### 🧭 1. 천체 궤적 및 정렬 시뮬레이션
+* **라이브 궤적 나침반:** 현재 위치와 시간에 따른 태양과 달의 방위각/고도를 SVG 그래픽으로 실시간 시각화합니다.
+* **정렬(Alignment) 계산기:** 피사체(건물/산)의 높이를 입력하면, 천체와 겹쳐 찍기 위해 필요한 정확한 촬영 거리와 방향을 삼각함수로 역산합니다.
 
-- **PM (Gemma3-12B)**: 요구사항 분석 및 기능 정의.
-- **Dev (Qwen2.5-Coder-14B)**: Next.js(App Router) 기반의 아키텍처 설계 및 TypeScript 코드 작성.
-- **Designer (Qwen2.5-Coder-14B)**: Tailwind CSS를 활용한 모던 벤토 그리드(Bento Grid) UI 구현.
-- **QA (GLM-4.7-Flash)**: 엣지 케이스 테스트 및 최종 코드 승인.
+### 🌅 2. 대기 지능형 분석
+* **노을 버닝(Burning) 지수:** 구름의 양, 습도, 가시거리를 융합 분석하여 오늘 저녁 노을이 붉게 타오를 확률을 예측합니다.
+* **정밀 안개 지수:** 기온 차와 습도, 풍속을 바탕으로 안개 발생 가능성을 수치화합니다.
 
-### 주요 자동화 명령어
+### 📷 3. 광학 및 기어 가이드
+* **과초점(Hyperfocal) 계산기:** 센서 크기와 화각에 따른 과초점 거리를 계산하여 풍경 사진의 팬포커싱을 지원합니다.
+* **상황별 렌즈 팁:** 날씨와 시정에 최적화된 렌즈 화각(mm)과 필수 광학 필터(CPL/ND)를 제안합니다.
+* **동적 체크리스트:** 기상 예보에 맞춰 레인커버, 삼각대 스톤백, 렌즈 핫팩 등 필요한 장비를 자동으로 리스트업합니다.
 
-- `!auto [요구사항]`: PM-Dev-Designer-QA로 이어지는 자율 개발 루프 가동.
-- `!pushall`: 로컬 워크스페이스의 코드를 GitHub 레포지토리로 자동 동기화.
-- `!deploy`: Vercel API를 통해 즉시 프로덕션 환경 배포.
+### 🏙️ 4. 로컬라이징 및 시뮬레이션
+* **한국어 지명 패치:** OpenWeatherMap의 외국어 지명을 Geocoding API를 통해 정확한 한국어 행정구역명으로 제공합니다.
+* **시간 여행(Simulator):** 탭 클릭 한 번으로 미래의 기상과 천체 위치를 즉시 시뮬레이션합니다.
 
 ---
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
-### Frontend & App
-
-- **Framework**: Next.js 16 (App Router)
-- **Styling**: Tailwind CSS (Bento Grid Layout)
-- **Icons**: Lucide-React
-- **PWA**: `@ducanh2912/next-pwa` (오프라인 접근 가능)
-
-### AI & Backend
-
-- **AI Models**: Ollama (Gemma3, Qwen2.5-Coder)
-- **Automation**: Python (discord.py, PyGithub, Subprocess)
-- **Database**: SQLite3 (대화 기록 및 문맥 유지)
-- **API**: OpenWeatherMap API, SunCalc
+* **Framework:** Next.js 14 (App Router)
+* **Language:** TypeScript
+* **Styling:** Tailwind CSS (Glassmorphism UI)
+* **Data Fetching:** Axios
+* **Celestial Math:** SunCalc
+* **Weather Data:** OpenWeatherMap API + 기상청(KMA) 단기예보 API (Hybrid)
+* **Formatting:** Prettier + Tailwind Merge
 
 ---
 
-## 🚀 시작하기
+## 🚀 시작하기 (Getting Started)
 
-### 1. 환경 변수 설정 (.env)
-
+### 1. 환경 변수 설정
+루트 디렉토리에 `.env` 파일을 생성하고 아래 키를 입력하세요.
 ```env
-WEATHER_API_KEY=
+WEATHER_API_KEY=your_openweathermap_api_key
+KMA_API_KEY=your_kma_encoding_service_key
+
 ```
 
-### 2. 로컬 개발 환경 실행
+### 2. 패키지 설치 및 실행
 
 ```bash
-# 의존성 설치
 npm install
-
-# 개발 서버 실행
 npm run dev
 
 ```
 
 ---
 
-## 📖 학습 참조 (Reference)
+## 📐 계산 공식 (Mathematical Formulas)
 
-이 프로젝트는 **[실전 촬영 숙제 가이드 - 서울 도심 & Zf 편]**의 내용을 충실히 반영하고 있습니다.
+Atmos는 신뢰할 수 있는 계산 결과를 위해 아래와 같은 수식을 사용합니다.
 
-- **빛의 5가지 방향**: 순광, 사광, 측광, 역사광, 역광 활용법 포함.
-- **측광 모드**: 스팟 측광과 멀티 패턴 측광의 차이점을 기상 상황에 연결.
-- **ISO 자동 제어**: 야간 촬영 시 Zf의 고감도 노이즈 억제력을 활용한 안전장치 세팅 가이드 포함.
+* **촬영 거리 계산 (Alignment):** 
+$$D = \frac{H}{\tan(\theta)}$$
+
+
+
+*(D: 거리, H: 피사체 높이, θ: 천체 고도)*
+* **과초점 거리 (Hyperfocal):**
+
+$$H = \frac{f^2}{N \cdot c}$$
+
+
+
+*(f: 초점 거리, N: 조리개 값, c: 착락원 지름)*
 
 ---
+
+## 👤 만든 사람 (Developer)
+
+**PARK KYOUNGSEO**
+
+* 🌐 [Portfolio Website](http://kkyungvelyy.com/)
+* ✍️ [Technical Blog](https://troublesome-dev.tistory.com/)
+* 🐙 [GitHub Profile](https://github.com/aihoshistar)
+
+---
+
+## ⚖️ License
+
+This project is for personal portfolio and educational purposes.

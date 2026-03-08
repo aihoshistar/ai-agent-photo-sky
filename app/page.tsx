@@ -22,6 +22,12 @@ import MoonPhase from './components/MoonPhase';
 import LensGuide from './components/LensGuide';
 import LocationMap from './components/LocationMap';
 import Footer from './components/Footer';
+import PackingList from './components/PackingList';
+import AlignmentCalc from './components/AlignmentCalc';
+import WeatherBackground from './components/WeatherBackground';
+import AstronomyCompass from './components/AstronomyCompass';
+import HyperfocalCalc from './components/HyperfocalCalc';
+import SunsetQuality from './components/SunsetQuality';
 
 export default function Home() {
   const [dataSource, setDataSource] = useState<string>('');
@@ -30,17 +36,35 @@ export default function Home() {
   const [fogPrediction, setFogPrediction] = useState(0);
   const [timeOffsetIndex, setTimeOffsetIndex] = useState<number>(0);
   const [sunTimes, setSunTimes] = useState<{
-    sunrise: Date | null;
-    sunset: Date | null;
-  }>({ sunrise: null, sunset: null });
+    sunrise: string | null;
+    sunset: string | null;
+    sunriseAzimuth: number | null;
+    sunsetAzimuth: number | null;
+  }>({
+    sunrise: null,
+    sunset: null,
+    sunriseAzimuth: null,
+    sunsetAzimuth: null,
+  });
   const [magicHours, setMagicHours] = useState<any>(null);
 
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // ✨ 출사지 즐겨찾기 상태 추가
+  const [favorites, setFavorites] = useState<
+    { name: string; lat: number; lon: number }[]
+  >([]);
+
   const router = useRouter();
 
+  // 최초 로드 시 즐겨찾기 목록과 내 위치 가져오기
   useEffect(() => {
+    const savedFavs = localStorage.getItem('photoSkyFavorites');
+    if (savedFavs) {
+      setFavorites(JSON.parse(savedFavs));
+    }
+
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) =>
@@ -63,6 +87,27 @@ export default function Home() {
     }
   }, []);
 
+  // ✨ 즐겨찾기 추가/삭제 함수
+  const toggleFavorite = () => {
+    if (!weatherData) return;
+    const spot = {
+      name: weatherData.name,
+      lat: weatherData.coord.lat,
+      lon: weatherData.coord.lon,
+    };
+    const exists = favorites.find((f) => f.name === spot.name);
+
+    let newFavs;
+    if (exists) {
+      newFavs = favorites.filter((f) => f.name !== spot.name); // 삭제
+    } else {
+      newFavs = [...favorites, spot]; // 추가
+    }
+
+    setFavorites(newFavs);
+    localStorage.setItem('photoSkyFavorites', JSON.stringify(newFavs));
+  };
+
   const fetchWeatherData = async (params: {
     lat?: number;
     lon?: number;
@@ -72,14 +117,11 @@ export default function Home() {
     setErrorMsg('');
     try {
       let url = '/api/weather?';
-      if (params.city) {
-        url += `city=${encodeURIComponent(params.city)}`;
-      } else if (params.lat && params.lon) {
+      if (params.city) url += `city=${encodeURIComponent(params.city)}`;
+      else if (params.lat && params.lon)
         url += `lat=${params.lat}&lon=${params.lon}`;
-      }
 
       const response = await axios.get(url);
-
       setWeatherData(response.data.current);
       setForecastData(response.data.forecast);
       setDataSource(response.data.dataSource);
@@ -111,13 +153,11 @@ export default function Home() {
 
   const activeWeather = getActiveWeatherData();
 
-  // ✅ (유지) 새로운 통합 useEffect: 탭이 바뀔 때마다 해/달/안개 지수를 모두 재계산합니다.
   useEffect(() => {
     if (activeWeather && activeWeather.coord) {
       const targetDate = activeWeather.dt
         ? new Date(activeWeather.dt * 1000)
         : new Date();
-
       calculateSunTimes(
         activeWeather.coord.lat,
         activeWeather.coord.lon,
@@ -127,84 +167,103 @@ export default function Home() {
     }
   }, [weatherData, forecastData, timeOffsetIndex]);
 
-  // 안개 지수 계산 함수
   const calculateFogPrediction = (currentWeather: any) => {
     if (!currentWeather || !currentWeather.main || !currentWeather.wind) {
       setFogPrediction(0);
       return;
     }
-
     const humidity = currentWeather.main.humidity || 0;
-    // temp_max, temp_min이 없을 경우를 대비 (단기예보 병합 시 없을 수 있음)
     const tempMax = currentWeather.main.temp_max || currentWeather.main.temp;
     const tempMin = currentWeather.main.temp_min || currentWeather.main.temp;
-
     const temperatureDifference = tempMax - tempMin;
     const windSpeed = currentWeather.wind.speed || 0;
-
     const prediction =
       (humidity * (Math.abs(temperatureDifference) + 1) * (windSpeed + 1)) /
       100;
-
-    // NaN 방지 및 안전한 저장
     setFogPrediction(isNaN(prediction) ? 0 : prediction);
   };
-  // 일출/일몰 및 매직아워 계산 함수
-  const calculateSunTimes = (lat: number, lon: number, targetDate: Date) => {
-    const times = getSunTimes(lat, lon, targetDate);
-    setSunTimes({ sunrise: times.sunrise, sunset: times.sunset });
 
+  const calculateSunTimes = (lat: number, lon: number, targetDate: Date) => {
     const scTimes = SunCalc.getTimes(targetDate, lat, lon);
     const formatTime = (date?: Date) => {
-      if (!date || isNaN(date.getTime())) return '-';
+      if (!date || isNaN(date.getTime())) return null;
       return date.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
       });
     };
 
+    const toCompass = (rad: number) => ((rad * 180) / Math.PI + 180) % 360;
+    const sunrisePos = scTimes.sunrise
+      ? SunCalc.getPosition(scTimes.sunrise, lat, lon)
+      : null;
+    const sunsetPos = scTimes.sunset
+      ? SunCalc.getPosition(scTimes.sunset, lat, lon)
+      : null;
+
+    setSunTimes({
+      sunrise: formatTime(scTimes.sunrise) || '-',
+      sunset: formatTime(scTimes.sunset) || '-',
+      sunriseAzimuth: sunrisePos ? toCompass(sunrisePos.azimuth) : null,
+      sunsetAzimuth: sunsetPos ? toCompass(sunsetPos.azimuth) : null,
+    });
+
     setMagicHours({
-      morningBlue: `${formatTime(scTimes.dawn)} ~ ${formatTime(
-        scTimes.sunrise,
-      )}`,
-      morningGolden: `${formatTime(scTimes.sunrise)} ~ ${formatTime(
-        scTimes.goldenHourEnd,
-      )}`,
-      eveningGolden: `${formatTime(scTimes.goldenHour)} ~ ${formatTime(
-        scTimes.sunset,
-      )}`,
-      eveningBlue: `${formatTime(scTimes.sunset)} ~ ${formatTime(
-        scTimes.dusk,
-      )}`,
+      morningBlue: `${formatTime(scTimes.dawn)} ~ ${formatTime(scTimes.sunrise)}`,
+      morningGolden: `${formatTime(scTimes.sunrise)} ~ ${formatTime(scTimes.goldenHourEnd)}`,
+      eveningGolden: `${formatTime(scTimes.goldenHour)} ~ ${formatTime(scTimes.sunset)}`,
+      eveningBlue: `${formatTime(scTimes.sunset)} ~ ${formatTime(scTimes.dusk)}`,
     });
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-[#0f172a] text-slate-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
+    <main className="flex min-h-screen flex-col items-center bg-[#0f172a] p-4 font-sans text-slate-200 selection:bg-blue-500/30 md:p-8">
+      {activeWeather && activeWeather.weather && (
+        <WeatherBackground condition={activeWeather.weather[0].main} />
+      )}
       {/* 헤더 타이틀 */}
-      <header className="mt-8 mb-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-teal-400">
-          PhotoSky
+      <header className="mb-6 mt-8 text-center">
+        {/* ✨ Atmos 그라데이션 적용: 보라색(황혼)에서 청록색(새벽빛)으로 이어지는 오로라 컬러 */}
+        <h1 className="mb-3 bg-gradient-to-r from-violet-400 via-cyan-400 to-teal-300 bg-clip-text text-5xl font-black tracking-tighter text-transparent drop-shadow-lg md:text-6xl">
+          Atmos
         </h1>
-        <p className="text-slate-400 text-sm md:text-base font-medium mb-8">
-          사진작가를 위한 정밀 기상 및 채광 정보
+        <p className="mb-8 text-sm font-medium tracking-wide text-slate-400 md:text-base">
+          사진작가를 위한 정밀 기상 및 채광 컴퓨테이셔널 도구
         </p>
         <section aria-label="주요 기능 소개" className="w-full max-w-4xl">
           <FeatureGuide />
         </section>
       </header>
-
-      {/* 전체 컨테이너 넓이 확대 (max-w-md -> max-w-4xl) */}
       <div className="w-full max-w-4xl">
-        {/* 검색 영역: 사용자의 인터랙션이 시작되는 독립적 섹션 */}
-        <section aria-label="지역 검색" className="mb-8">
+        {/* 🔍 검색 및 ✨즐겨찾기 영역 */}
+        <section aria-label="지역 검색 및 즐겨찾기" className="mb-8">
           <SearchBar onSearch={(city) => fetchWeatherData({ city })} />
+
+          {/* 즐겨찾기 칩 목록 */}
+          {favorites.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2 px-2">
+              <span className="mr-1 py-1.5 text-xs font-bold text-slate-500">
+                ⭐ 내 포인트:
+              </span>
+              {favorites.map((fav, idx) => (
+                <button
+                  key={idx}
+                  onClick={() =>
+                    fetchWeatherData({ lat: fav.lat, lon: fav.lon })
+                  }
+                  className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-bold text-slate-300 shadow-sm transition-colors hover:bg-slate-700 hover:text-white"
+                >
+                  {fav.name}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
         {errorMsg && (
           <div
             role="alert"
-            className="p-4 mb-6 text-sm text-red-300 bg-red-950/40 border border-red-900/50 rounded-xl text-center backdrop-blur-sm"
+            className="mb-6 rounded-xl border border-red-900/50 bg-red-950/40 p-4 text-center text-sm text-red-300 backdrop-blur-sm"
           >
             {errorMsg}
           </div>
@@ -212,43 +271,58 @@ export default function Home() {
 
         {loading ? (
           <div
-            className="flex flex-col items-center justify-center mt-32 space-y-6"
+            className="mt-32 flex flex-col items-center justify-center space-y-6"
             aria-live="polite"
           >
-            <div className="w-14 h-14 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
-            <p className="text-slate-400 animate-pulse font-medium">
+            <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-700 border-t-blue-500"></div>
+            <p className="animate-pulse font-medium text-slate-400">
               하늘의 상태를 분석하고 있습니다...
             </p>
           </div>
-        ) : activeWeather ? ( // 👈 weatherData 대신 activeWeather 확인
+        ) : activeWeather ? (
           <div className="w-full">
-            {/* ✨ 출사 시간대 시뮬레이터 탭 추가 */}
-            <div className="flex items-center justify-start md:justify-center gap-2 mb-8 overflow-x-auto pb-4 snap-x hide-scrollbar w-full px-2">
-              {[
-                { label: '현재 시간', offset: 0 },
-                { label: '+3시간', offset: 1 }, // list[0]
-                { label: '+6시간', offset: 2 }, // list[1]
-                { label: '+12시간', offset: 4 }, // list[3]
-                { label: '내일 이맘때', offset: 8 }, // list[7] (24시간 뒤)
-                { label: '모레 이맘때', offset: 16 }, // list[15] (48시간 뒤)
-              ].map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => setTimeOffsetIndex(option.offset)}
-                  className={`snap-center flex-shrink-0 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 whitespace-nowrap ${
-                    timeOffsetIndex === option.offset
-                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30 md:scale-105'
-                      : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            {/* ✨ 현재 위치 즐겨찾기 등록 버튼 & 시뮬레이터 탭 */}
+            <div className="mb-8 flex w-full flex-col items-center justify-between gap-4 px-2 md:flex-row">
+              <button
+                onClick={toggleFavorite}
+                className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition-all ${
+                  favorites.some((f) => f.name === weatherData.name)
+                    ? 'border-yellow-500/50 bg-yellow-500/20 text-yellow-300'
+                    : 'border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700'
+                }`}
+              >
+                <span>
+                  {favorites.some((f) => f.name === weatherData.name)
+                    ? '⭐ 저장된 포인트'
+                    : '☆ 이 장소 저장'}
+                </span>
+              </button>
 
+              <div className="hide-scrollbar flex max-w-full snap-x items-center gap-2 overflow-x-auto pb-2">
+                {[
+                  { label: '현재 시간', offset: 0 },
+                  { label: '+3시간', offset: 1 },
+                  { label: '+6시간', offset: 2 },
+                  { label: '+12시간', offset: 4 },
+                  { label: '내일 이맘때', offset: 8 },
+                  { label: '모레 이맘때', offset: 16 },
+                ].map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setTimeOffsetIndex(option.offset)}
+                    className={`flex-shrink-0 snap-center whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all duration-300 ${
+                      timeOffsetIndex === option.offset
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                        : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             {/* 👇 벤토 그리드 레이아웃 시작 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 fade-in pb-12">
-              {/* 1. 메인 실시간 기상 상태 (activeWeather 전달) */}
+            <div className="fade-in grid grid-cols-1 gap-4 pb-12 md:grid-cols-2">
               <article
                 className="md:col-span-2"
                 aria-labelledby="current-weather-heading"
@@ -259,13 +333,12 @@ export default function Home() {
                     timeOffsetIndex === 0
                       ? dataSource
                       : dataSource === 'KMA'
-                      ? 'KMA_FORECAST'
-                      : 'OWM_FORECAST'
+                        ? 'KMA_FORECAST'
+                        : 'OWM_FORECAST'
                   }
                 />
               </article>
 
-              {/* 2. 시간대별 상세 예보 */}
               {forecastData && (
                 <section
                   className="md:col-span-2"
@@ -273,7 +346,6 @@ export default function Home() {
                 >
                   {forecastData && weatherData && (
                     <HourlyForecast
-                      // 👇 핵심: 배열의 맨 앞에 '현재 날씨(weatherData)'를 추가한 뒤 slice합니다!
                       forecastList={[weatherData, ...forecastData.list].slice(
                         timeOffsetIndex,
                       )}
@@ -282,9 +354,8 @@ export default function Home() {
                 </section>
               )}
 
-              {/* 3. 환경 수치 정보 (activeWeather 사용) */}
               <section
-                className="grid grid-cols-1 md:grid-cols-2 md:col-span-2 gap-4"
+                className="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-2"
                 aria-label="상세 기상 지표"
               >
                 <CloudVisibility
@@ -297,46 +368,54 @@ export default function Home() {
                 />
               </section>
 
-              {/* 4. 채광 정보 및 촬영지 검증 (좌표는 변하지 않으므로 기존 weatherData 유지) */}
+              {/* ✨ 새로 추가된 노을 예측기 & 안개 지수 (자연 환경 분석 섹션) */}
+              <section className="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-2">
+                <SunsetQuality weatherData={activeWeather} />
+                <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
+              </section>
+
               <section
                 className="md:col-span-2"
                 aria-label="일출·일몰 및 위치 정보"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-                  <SunTimes
-                    sunTimes={{
-                      sunrise: sunTimes.sunrise?.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }),
-                      sunset: sunTimes.sunset?.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }),
-                    }}
-                  />
-                  <MagicHours magicHours={magicHours} />
-
-                  {/* ✨ 달의 위상에도 activeWeather의 날짜를 전달합니다! */}
-                  <MoonPhase
+                <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* 방금 만든 나침반 (중앙에서 시각적 핵심 역할) */}
+                  <AstronomyCompass
                     date={
                       activeWeather?.dt
                         ? new Date(activeWeather.dt * 1000)
                         : new Date()
                     }
-                  />
-
-                  <LocationMap
                     lat={weatherData.coord.lat}
                     lon={weatherData.coord.lon}
-                    locationName={weatherData.name}
                   />
-                </div>{' '}
+
+                  <div className="flex flex-col gap-4">
+                    <SunTimes sunTimes={sunTimes} />
+                    <MagicHours magicHours={magicHours} />
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <MoonPhase
+                      date={
+                        activeWeather?.dt
+                          ? new Date(activeWeather.dt * 1000)
+                          : new Date()
+                      }
+                      lat={weatherData.coord.lat}
+                      lon={weatherData.coord.lon}
+                    />
+                    <LocationMap
+                      lat={weatherData.coord.lat}
+                      lon={weatherData.coord.lon}
+                      locationName={weatherData.name}
+                    />
+                  </div>
+                </div>
               </section>
 
-              {/* 5. Nikon Zf 실전 촬영 숙제 가이드 (activeWeather 전달) */}
               <section
-                className="md:col-span-2 space-y-4"
+                className="space-y-4 md:col-span-2"
                 aria-labelledby="photography-guide-heading"
               >
                 <header className="sr-only">
@@ -349,19 +428,30 @@ export default function Home() {
                   <PhotographyMission weatherData={activeWeather} />
                 </article>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                {/* ✨ 정렬 계산기와 과초점 계산기 나란히 배치 */}
+                <div className="grid w-full grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+                  <AlignmentCalc
+                    date={
+                      activeWeather?.dt
+                        ? new Date(activeWeather.dt * 1000)
+                        : new Date()
+                    }
+                    lat={weatherData.coord.lat}
+                    lon={weatherData.coord.lon}
+                    weatherData={activeWeather}
+                  />
+                  <HyperfocalCalc />
+                </div>
+
+                <article className="w-full">
+                  <PackingList weatherData={activeWeather} />
+                </article>
+
+                <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2">
                   <ExposureGuide weatherData={activeWeather} />
-                  <LensGuide />
+                  <LensGuide weatherData={activeWeather} />
                 </div>
               </section>
-
-              {/* 6. 특수 기상 지수 (안개 예측) */}
-              <article
-                className="md:col-span-2"
-                aria-label="안개 발생 가능성 분석"
-              >
-                <FogPrediction fogPrediction={fogPrediction.toFixed(2)} />
-              </article>
             </div>
           </div>
         ) : null}

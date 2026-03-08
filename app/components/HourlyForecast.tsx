@@ -18,13 +18,13 @@ export default function HourlyForecast({ forecastList }: Props) {
   const next24Hours = forecastList.slice(0, 8);
 
   return (
-    <div className="mb-4 p-5 bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
-      <h2 className="text-xl font-semibold mb-4 text-teal-300">
+    <div className="mb-4 overflow-hidden rounded-xl border border-gray-700 bg-gray-800 p-5 shadow-lg">
+      <h2 className="mb-4 text-xl font-semibold text-teal-300">
         시간대별 예보 (24시간)
       </h2>
 
       {/* 가로 스크롤 영역 (tailwind-scrollbar 활용) */}
-      <div className="flex overflow-x-auto space-x-3 pb-3 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+      <div className="flex space-x-3 overflow-x-auto pb-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600">
         {next24Hours.map((item) => {
           // 시간 포맷팅 (예: 오전 09:00)
           const time = new Date(item.dt * 1000).toLocaleTimeString([], {
@@ -38,22 +38,22 @@ export default function HourlyForecast({ forecastList }: Props) {
           return (
             <div
               key={item.dt}
-              className="flex flex-col items-center min-w-[85px] bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex-shrink-0"
+              className="flex min-w-[85px] flex-shrink-0 flex-col items-center rounded-xl border border-gray-700/50 bg-gray-900/50 p-3"
             >
               <span className="text-sm text-gray-300">{time}</span>
               <img
                 src={iconUrl}
                 alt={item.weather[0].description}
-                className="w-12 h-12 my-1 drop-shadow-md"
+                className="my-1 h-12 w-12 drop-shadow-md"
                 title={item.weather[0].description}
               />
               <span className="text-lg font-bold">{temp}°C</span>
 
-              <div className="flex flex-col items-center mt-2 space-y-1 text-xs w-full">
-                <span className="text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded w-full text-center">
+              <div className="mt-2 flex w-full flex-col items-center space-y-1 text-xs">
+                <span className="w-full rounded bg-blue-900/30 px-2 py-0.5 text-center text-blue-400">
                   ☔ {pop}%
                 </span>
-                <span className="text-gray-300 bg-gray-700/50 px-2 py-0.5 rounded w-full text-center">
+                <span className="w-full rounded bg-gray-700/50 px-2 py-0.5 text-center text-gray-300">
                   ☁️ {item.clouds.all}%
                 </span>
               </div>

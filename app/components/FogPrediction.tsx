@@ -32,12 +32,12 @@ export default function FogPrediction({ fogPrediction }: Props) {
   const status = getFogStatus(value);
 
   return (
-    <div className="p-6 bg-gray-800 rounded-3xl shadow-lg border border-gray-700 h-full flex flex-col justify-between">
+    <div className="flex h-full flex-col justify-between rounded-3xl border border-gray-700 bg-gray-800 p-6 shadow-lg">
       <div>
-        <h2 className="text-xl font-semibold mb-1 text-indigo-300 flex items-center gap-2">
+        <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold text-indigo-300">
           <Waves size={20} /> 안개 예측 지수
         </h2>
-        <p className="text-xs text-gray-400 mb-4">
+        <p className="mb-4 text-xs text-gray-400">
           습도, 온도차, 풍속 기반 분석
         </p>
       </div>
@@ -47,24 +47,24 @@ export default function FogPrediction({ fogPrediction }: Props) {
           <span className={`text-3xl font-black ${status.color}`}>
             {value.toFixed(1)}
           </span>
-          <span className={`text-sm font-bold mt-1 ${status.color}`}>
+          <span className={`mt-1 text-sm font-bold ${status.color}`}>
             {status.label}
           </span>
         </div>
-        <p className="text-xs text-gray-500 text-right max-w-[120px] leading-tight">
+        <p className="max-w-[120px] text-right text-xs leading-tight text-gray-500">
           {status.desc}
         </p>
       </div>
 
       {/* 단순 프로그레스 바 형태의 시각화 */}
-      <div className="w-full h-2 bg-gray-900 rounded-full mt-4 overflow-hidden">
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-gray-900">
         <div
           className={`h-full transition-all duration-1000 ${
             value > 70
               ? 'bg-purple-500'
               : value > 40
-              ? 'bg-blue-500'
-              : 'bg-emerald-500'
+                ? 'bg-blue-500'
+                : 'bg-emerald-500'
           }`}
           style={{ width: `${Math.min(value, 100)}%` }}
         ></div>

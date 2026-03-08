@@ -2,3 +2,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* app/globals.css 맨 아래 추가 */
+
+@keyframes fall {
+  0% {
+    transform: translateY(-10vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(20px);
+    opacity: 0;
+  }
+}
+
+@keyframes fog-drift {
+  0% {
+    transform: translateX(-10%);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(10%);
+    opacity: 0.3;
+  }
+}
+
+.animate-rain {
+  animation: fall linear infinite;
+  background-color: rgba(255, 255, 255, 0.4);
+  width: 2px;
+  height: 20px;
+  border-radius: 2px;
+  position: absolute;
+}
+
+.animate-snow {
+  animation: fall linear infinite;
+  background-color: rgba(255, 255, 255, 0.8);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  position: absolute;
+  filter: blur(1px);
+}
+
+.animate-fog {
+  animation: fog-drift 20s ease-in-out infinite alternate;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  width: 200vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: -50vw;
+  pointer-events: none;
+}

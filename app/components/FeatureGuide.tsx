@@ -1,42 +1,66 @@
 // app/components/FeatureGuide.tsx
-import { SunMedium, Focus, Camera, Wind } from 'lucide-react';
+import React from 'react';
 
 export default function FeatureGuide() {
   const features = [
     {
-      icon: <SunMedium className="text-orange-400" size={20} />,
-      title: '매직아워 분석',
-      desc: '골든/블루아워 시간을 분 단위로 제공합니다.',
+      icon: '📐',
+      title: '천체 정렬 및 궤적 추적',
+      description:
+        '단순한 매직아워를 넘어, 해와 달의 방위각을 계산해 피사체와의 완벽한 정렬 거리를 역산합니다.',
+      color: 'from-blue-500/20 to-blue-500/5',
+      borderColor: 'border-blue-500/20',
+      iconBg: 'bg-blue-500/20',
     },
     {
-      icon: <Focus className="text-blue-400" size={20} />,
-      title: '측광 미션',
-      desc: '날씨에 맞는 스팟/멀티 측광 팁을 제안합니다.',
+      icon: '🎯',
+      title: '상황별 촬영 전술 설계',
+      description:
+        '빛의 방향과 기상 조건을 분석하여, 현장에 가장 적합한 측광 모드와 노출 삼각지대를 제안합니다.',
+      color: 'from-indigo-500/20 to-indigo-500/5',
+      borderColor: 'border-indigo-500/20',
+      iconBg: 'bg-indigo-500/20',
     },
     {
-      icon: <Camera className="text-teal-400" size={20} />,
-      title: 'Zf 최적화',
-      desc: '렌즈 특성과 카메라 세팅 가이드를 포함합니다.',
+      icon: '📷',
+      title: '광학 기어 및 초점 최적화',
+      description:
+        '팬포커스를 위한 과초점 거리 계산부터, 날씨에 따른 필수 렌즈와 동적 패킹 리스트를 제공합니다.',
+      color: 'from-teal-500/20 to-teal-500/5',
+      borderColor: 'border-teal-500/20',
+      iconBg: 'bg-teal-500/20',
     },
     {
-      icon: <Wind className="text-indigo-400" size={20} />,
-      title: '정밀 기상',
-      desc: '안개 지수와 가시거리로 촬영 환경을 예측합니다.',
+      icon: '🌅',
+      title: '대기 상태 및 노을 예측',
+      description:
+        '구름양과 가시거리, 습도를 융합 분석해 안개 발생률과 오늘 저녁 노을의 버닝(Burning) 지수를 예측합니다.',
+      color: 'from-orange-500/20 to-orange-500/5',
+      borderColor: 'border-orange-500/20',
+      iconBg: 'bg-orange-500/20',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10 w-full">
-      {features.map((f, i) => (
+    <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+      {features.map((feature, index) => (
         <div
-          key={i}
-          className="flex flex-col items-center p-3 bg-slate-800/30 border border-slate-700/50 rounded-2xl backdrop-blur-sm"
+          key={index}
+          className={`flex flex-col items-start gap-4 rounded-2xl bg-gradient-to-br p-5 sm:flex-row sm:items-center ${feature.color} border ${feature.borderColor} backdrop-blur-sm transition-all hover:bg-slate-800/80`}
         >
-          <div className="mb-2 p-2 bg-slate-900/50 rounded-full">{f.icon}</div>
-          <h4 className="text-xs font-bold text-slate-200 mb-1">{f.title}</h4>
-          <p className="text-[10px] text-slate-400 text-center leading-tight break-keep">
-            {f.desc}
-          </p>
+          <div
+            className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${feature.iconBg} text-2xl shadow-inner`}
+          >
+            {feature.icon}
+          </div>
+          <div>
+            <h3 className="mb-1.5 text-sm font-bold tracking-tight text-slate-200 md:text-base">
+              {feature.title}
+            </h3>
+            <p className="break-keep text-[11px] leading-relaxed text-slate-400 md:text-xs">
+              {feature.description}
+            </p>
+          </div>
         </div>
       ))}
     </div>
